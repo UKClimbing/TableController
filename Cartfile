@@ -1,1 +1,1 @@
-git "file:///Users/fatboy/Documents/Developer/KeyboardMonitor" "master"
+github "https://github.com/ryecroft/KeyboardMonitor.git"
