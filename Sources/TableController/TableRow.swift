@@ -1,5 +1,5 @@
 //
-//  BaseRowDefinition.swift
+//  TableRow.swift
 //  Rockfax
 //
 //  Created by Stephen Horne on 09/01/2019.
@@ -44,13 +44,13 @@ import UIKit
   
   open var cell: UITableViewCell
   open var indexPath: IndexPath
-  open var rowDefinition: TableRow
+  open var tableRow: TableRow
   
   
-  public init(cell: UITableViewCell, indexPath: IndexPath, rowDefinition: TableRow) {
+  public init(cell: UITableViewCell, indexPath: IndexPath, tableRow: TableRow) {
     self.cell = cell
     self.indexPath = indexPath
-    self.rowDefinition = rowDefinition
+    self.tableRow = tableRow
     super.init()
   }
   
@@ -62,9 +62,9 @@ import UIKit
   
   open var controller: TableController
   
-  public init(controller: TableController, cell: UITableViewCell, indexPath: IndexPath, rowDefinition: TableRow) {
+  public init(controller: TableController, cell: UITableViewCell, indexPath: IndexPath, tableRow: TableRow) {
     self.controller = controller
-    super.init(cell: cell, indexPath: indexPath, rowDefinition: rowDefinition)
+    super.init(cell: cell, indexPath: indexPath, tableRow: tableRow)
   }
 }
 
@@ -75,9 +75,9 @@ import UIKit
   open var tableView: UITableView
   
   
-  public init(tableView: UITableView, cell: UITableViewCell, indexPath: IndexPath, rowDefinition: TableRow) {
+  public init(tableView: UITableView, cell: UITableViewCell, indexPath: IndexPath, tableRow: TableRow) {
     self.tableView = tableView
-    super.init(cell: cell, indexPath: indexPath, rowDefinition: rowDefinition)
+    super.init(cell: cell, indexPath: indexPath, tableRow: tableRow)
   }
 }
 
@@ -198,7 +198,7 @@ public enum DisplayState {
   ///   - cell: The deselected cell.
   ///   - indexPath: The index path for the cell.
   open func performSelect(forTableViewController controller: TableController, cell: UITableViewCell, indexPath: IndexPath) {
-    let context = TableViewCellBlockContextWithController(controller: controller, cell: cell, indexPath: indexPath, rowDefinition: self)
+    let context = TableViewCellBlockContextWithController(controller: controller, cell: cell, indexPath: indexPath, tableRow: self)
     onSelect?(context)
   }
   
@@ -212,7 +212,7 @@ public enum DisplayState {
   ///   - cell: The deselected cell.
   ///   - indexPath: The index path for the cell.
   open func perform__Deselect__(forTableViewController controller: TableController, cell: UITableViewCell, indexPath: IndexPath) {
-    let context = TableViewCellBlockContextWithController(controller: controller, cell: cell, indexPath: indexPath, rowDefinition: self)
+    let context = TableViewCellBlockContextWithController(controller: controller, cell: cell, indexPath: indexPath, tableRow: self)
     onDeselect?(context)
   }
   
@@ -222,7 +222,7 @@ public enum DisplayState {
     if let backgroundColor = backgroundColor {
       cell.backgroundColor = backgroundColor
     }
-    let context = TableViewCellBlockContextWithTableView(tableView: tableView, cell: cell, indexPath: indexPath, rowDefinition: self)
+    let context = TableViewCellBlockContextWithTableView(tableView: tableView, cell: cell, indexPath: indexPath, tableRow: self)
     configureCell?(context)
   }
   
@@ -247,7 +247,7 @@ public enum DisplayState {
   ///   - cell: The cell that will be diplayed.
   ///   - indexPath: The index path for the cell.
   open func tableViewController(_ controller: TableController, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-    let context = TableViewCellBlockContextWithController(controller: controller, cell: cell, indexPath: indexPath, rowDefinition: self)
+    let context = TableViewCellBlockContextWithController(controller: controller, cell: cell, indexPath: indexPath, tableRow: self)
     beforeDisplay?(context)
     cell.setNeedsLayout()
   }
@@ -261,7 +261,7 @@ public enum DisplayState {
   ///   - cell: The cell that is leaving the display area.
   ///   - indexPath: The index path for the cell.
   open func tableViewController(_ controller: TableController, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-    let context = TableViewCellBlockContextWithController(controller: controller, cell: cell, indexPath: indexPath, rowDefinition: self)
+    let context = TableViewCellBlockContextWithController(controller: controller, cell: cell, indexPath: indexPath, tableRow: self)
     afterDisplay?(context)
   }
   

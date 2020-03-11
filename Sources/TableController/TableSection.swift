@@ -1,5 +1,5 @@
 //
-//  BaseSectionDefinition.swift
+//  TableSection.swift
 //  Rockfax
 //
 //  Created by Stephen Horne on 17/01/2019.
