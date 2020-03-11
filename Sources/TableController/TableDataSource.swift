@@ -13,8 +13,8 @@
  
  This class can either automatically manage registering classes with the tableView (nibs are not supported), or semi-automatically manage the registration.
  
- - To manage automatically: each rowDefinition you create needs to return a value for both `cellClass` and `cellIdentifier`. These are registered with the tableView the first time these definitions are included in the `dataSource.sections`'s `rowDefinitions`.
-   In addition, you should return values for the `section`'s `headerViewIdentifier` and `headerViewClass`. These will be used in the same way.
+ - To manage automatically: each rowDefinition you create needs to return a value for both `cellClass` and `cellIdentifier`. These are registered with the tableView the first time these definitions are included in the `dataSource.sections`'s `rows`.
+   In addition, you should return values for the `tableSection`'s `headerViewIdentifier` and `headerViewClass`. These will be used in the same way.
  
  - To manage in a semi-automatic fashion, which will require less overhead each time you set the `sections` property (ie filter the dataSource) and is therefore perhaps preferable for very long tableviews, set `automaticallyRegistersClasses` to `false` and set up the properties `tableViewHeaderClasses` and `tableViewClasses` in your dataSource subclass.
  
@@ -31,7 +31,7 @@ open class TableDataSource: NSObject, UITableViewDataSource, UITableViewDataSour
   private var registeredRowIdentifiers = Set<String>()
   private var registeredHeaderIdentifiers = Set<String>()
   
-  private var scrollViewDelegates = Set<RowDefinition>()
+  private var scrollViewDelegates = Set<TableRow>()
   
   open var automaticallyRegistersClasses: Bool = true
   
@@ -40,12 +40,12 @@ open class TableDataSource: NSObject, UITableViewDataSource, UITableViewDataSour
   open var adjustEmptyDatasetViewPositionForKeyboard: Bool = true
   
   
-  open var cellToRowMap: [ UITableViewCell: RowDefinition ] = [ UITableViewCell: RowDefinition ]()
+  open var cellToRowMap: [ UITableViewCell: TableRow ] = [ UITableViewCell: TableRow ]()
   
 
   open var tableView: UITableView?
-  open var sections = [SectionDefinition]() { didSet { _sectionsDidSet() } }
-  open var definitions: [RowDefinition] { return sections.map { $0.rowDefinitions }.flatMap { $0 } }
+  open var sections = [TableSection]() { didSet { _sectionsDidSet() } }
+  open var definitions: [TableRow] { return sections.map { $0.tableRows }.flatMap { $0 } }
   
   private func _sectionsDidSet() {
     for (index, section) in sections.enumerated() { 
@@ -81,7 +81,7 @@ open class TableDataSource: NSObject, UITableViewDataSource, UITableViewDataSour
 
   
   // This calculates the required height of all the rows
-  open var calculatedContentSize: CGFloat { return sections.flatMap { $0.rowDefinitions }.reduce(0) { result, next in return result + next.preferredCellHeightCalculated } }
+  open var calculatedContentSize: CGFloat { return sections.flatMap { $0.tableRows }.reduce(0) { result, next in return result + next.preferredCellHeightCalculated } }
   
   /// Override this property to provide the identifiers and classes for the tableView
   /// to register. This will only be used if you also set `automaticallyRegistersClasses` to `false`.
@@ -144,7 +144,7 @@ open class TableDataSource: NSObject, UITableViewDataSource, UITableViewDataSour
           tableView.register(klass, forHeaderFooterViewReuseIdentifier: identifier)
         }
       }
-      for row in section.rowDefinitions {
+      for row in section.tableRows {
         let identifier = row.cellIdentifier
         if registeredRowIdentifiers.contains(identifier) == false {
           registeredRowIdentifiers.insert(identifier)
@@ -157,7 +157,7 @@ open class TableDataSource: NSObject, UITableViewDataSource, UITableViewDataSour
   
   // MARK: UITableViewDataSource
   
-  open func sectionDefinition(at index: Int) -> SectionDefinition? {
+  open func sectionDefinition(at index: Int) -> TableSection? {
     if sections.count <= index {
       return nil
     }
@@ -170,15 +170,15 @@ open class TableDataSource: NSObject, UITableViewDataSource, UITableViewDataSour
   }
   
   
-  open func rowDefinition(atIndexPath indexPath: IndexPath) -> RowDefinition? {
+  open func rowDefinition(atIndexPath indexPath: IndexPath) -> TableRow? {
     guard let section = sectionDefinition(at: indexPath.section) else {
       return nil
     }
-    if section.rowDefinitions.count <= indexPath.row {
+    if section.tableRows.count <= indexPath.row {
       return nil
     }
     
-    let definition = section.rowDefinitions[indexPath.row]
+    let definition = section.tableRows[indexPath.row]
     
     definition.controller = controller
     
@@ -227,7 +227,7 @@ open class TableDataSource: NSObject, UITableViewDataSource, UITableViewDataSour
   
   
   open func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return self.sectionDefinition(at: section)?.rowDefinitions.count ?? 0
+    return self.sectionDefinition(at: section)?.tableRows.count ?? 0
   }
   
   
@@ -307,18 +307,18 @@ open class TableDataSource: NSObject, UITableViewDataSource, UITableViewDataSour
 
 public extension UITableViewCell {
   
-  var rowDefinition: RowDefinition? {
+  var rowDefinition: TableRow? {
     guard let tableView = superview as? UITableView else { return nil }
     guard let dataSource = tableView.dataSource as? TableDataSource else { return nil }
     return dataSource.cellToRowMap[self]
   }
   
   
-  var sectionDefinition: SectionDefinition? {
+  var sectionDefinition: TableSection? {
     guard let tableView = superview as? UITableView else { return nil }
     guard let dataSource = tableView.dataSource as? TableDataSource else { return nil }
     guard let row = dataSource.cellToRowMap[self] else { return nil }
-    return row.section
+    return row.tableSection
   }
   
 }

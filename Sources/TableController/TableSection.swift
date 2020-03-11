@@ -9,7 +9,7 @@
 import UIKit
 
 
-@objc open class SectionDefinition: NSObject {
+@objc open class TableSection: NSObject {
   
   public typealias BeforeDisplayBlock = (TableViewHeaderFooterBlockContextWithController)->Void
   public typealias AfterDisplayBlock = (TableViewHeaderFooterBlockContextWithController)->Void
@@ -45,9 +45,9 @@ import UIKit
   
   open var headerHeight: CGFloat = 0
   
-  open var rowDefinitions: [RowDefinition] { return _rowDefinitions }
+  open var tableRows: [TableRow] { return _tableRows }
   
-  private var _rowDefinitions: [RowDefinition] = [RowDefinition]()
+  private var _tableRows: [TableRow] = [TableRow]()
   
   
   override public init() {
@@ -56,41 +56,41 @@ import UIKit
   }
   
   
-  @objc(appendDefinition:)
-  open func append(definition: RowDefinition) {
-    definition.section = self
-    definition.row = _rowDefinitions.count
-    _rowDefinitions.append(definition)
+  @objc(appendRow:)
+  open func append(tableRow: TableRow) {
+    tableRow.tableSection = self
+    tableRow.row = _tableRows.count
+    _tableRows.append(tableRow)
   }
   
   
-  @objc(insertDefinition:atIndex:)
-  open func insert(definition: RowDefinition, at index: Int) {
-    definition.section = self
-    _rowDefinitions.insert(definition, at: index)
-    setDefinitionRows(startOffset: index)
+  @objc(insertRow:atIndex:)
+  open func insert(tableRow: TableRow, at index: Int) {
+    tableRow.tableSection = self
+    _tableRows.insert(tableRow, at: index)
+    _setRowInformation(startOffset: index)
   }
   
   
-  @objc(removeDefinition:)
-  open func remove(definition: RowDefinition) {
-    if let index = _rowDefinitions.firstIndex(of: definition) {
-      _rowDefinitions.remove(at: index)
+  @objc(removeRow:)
+  open func remove(definition: TableRow) {
+    if let index = _tableRows.firstIndex(of: definition) {
+      _tableRows.remove(at: index)
     }
   }
   
   
-  @objc(setDefinitions:)
-  open func set(definitions: [RowDefinition]) {
-    _rowDefinitions = definitions
-    setDefinitionRows()
+  @objc(setRows:)
+  open func set(definitions: [TableRow]) {
+    _tableRows = definitions
+    _setRowInformation()
   }
   
   
-  private func setDefinitionRows(startOffset: Int = 0) {
-    _rowDefinitions.dropFirst(startOffset).enumerated().forEach { idx, element in 
+  private func _setRowInformation(startOffset: Int = 0) {
+    _tableRows.dropFirst(startOffset).enumerated().forEach { idx, element in 
       element.row = idx 
-      element.section = self
+      element.tableSection = self
     }
   }
   
@@ -115,7 +115,7 @@ import UIKit
   ///   - view: The header/footer view that will be diplayed.
   ///   - section: The section for the view.
   open func tableViewController(_ controller: TableController, willDisplayHeaderView view: UIView, forSection section: Int) {
-    let context = TableViewHeaderFooterBlockContextWithController(controller: controller, view: view, section: section, sectionDefinition: self)
+    let context = TableViewHeaderFooterBlockContextWithController(controller: controller, view: view, section: section, tableSection: self)
     beforeDisplay?(context)
   }
   

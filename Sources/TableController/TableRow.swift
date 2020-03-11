@@ -12,14 +12,14 @@ import UIKit
 @objc open class TableViewHeaderFooterBlockContext: NSObject {
   
   open var view: UIView
-  open var section: Int
-  open var sectionDefinition: SectionDefinition
+  open var sectionIndex: Int
+  open var tableSection: TableSection
   
   
-  public init(view: UIView, section: Int, sectionDefinition: SectionDefinition) {
+  public init(view: UIView, section: Int, tableSection: TableSection) {
     self.view = view
-    self.section = section
-    self.sectionDefinition = sectionDefinition
+    self.sectionIndex = section
+    self.tableSection = tableSection
     super.init()
   }
   
@@ -31,9 +31,9 @@ import UIKit
   
   open var controller: TableController
   
-  public init(controller: TableController, view: UIView, section: Int, sectionDefinition: SectionDefinition) {
+  public init(controller: TableController, view: UIView, section: Int, tableSection: TableSection) {
     self.controller = controller
-    super.init(view: view, section: section, sectionDefinition: sectionDefinition)
+    super.init(view: view, section: section, tableSection: tableSection)
   }
 }
 
@@ -44,10 +44,10 @@ import UIKit
   
   open var cell: UITableViewCell
   open var indexPath: IndexPath
-  open var rowDefinition: RowDefinition
+  open var rowDefinition: TableRow
   
   
-  public init(cell: UITableViewCell, indexPath: IndexPath, rowDefinition: RowDefinition) {
+  public init(cell: UITableViewCell, indexPath: IndexPath, rowDefinition: TableRow) {
     self.cell = cell
     self.indexPath = indexPath
     self.rowDefinition = rowDefinition
@@ -62,7 +62,7 @@ import UIKit
   
   open var controller: TableController
   
-  public init(controller: TableController, cell: UITableViewCell, indexPath: IndexPath, rowDefinition: RowDefinition) {
+  public init(controller: TableController, cell: UITableViewCell, indexPath: IndexPath, rowDefinition: TableRow) {
     self.controller = controller
     super.init(cell: cell, indexPath: indexPath, rowDefinition: rowDefinition)
   }
@@ -75,7 +75,7 @@ import UIKit
   open var tableView: UITableView
   
   
-  public init(tableView: UITableView, cell: UITableViewCell, indexPath: IndexPath, rowDefinition: RowDefinition) {
+  public init(tableView: UITableView, cell: UITableViewCell, indexPath: IndexPath, rowDefinition: TableRow) {
     self.tableView = tableView
     super.init(cell: cell, indexPath: indexPath, rowDefinition: rowDefinition)
   }
@@ -91,17 +91,17 @@ public enum DisplayState {
 
 
 /// This class is designed to be subclassed. It provides the basic funtionality surrounding the row selection and willDisplay stuff.
-@objc open class RowDefinition: NSObject {
+@objc open class TableRow: NSObject {
   
   public typealias OnSelectBlock = (TableViewCellBlockContextWithController)->Void
   public typealias ConfigureCellBlock = (TableViewCellBlockContextWithTableView)->Void
   public typealias OnDeselectBlock = OnSelectBlock
   public typealias BeforeDisplayBlock = OnSelectBlock
   public typealias AfterDisplayBlock = OnSelectBlock
-  public typealias ScrollViewBlock = (UIScrollView, RowDefinition)->Void
+  public typealias ScrollViewBlock = (UIScrollView, TableRow)->Void
   
   
-  open weak var section: SectionDefinition?
+  open weak var tableSection: TableSection?
   open weak var controller: TableController?
   open weak var cell: UITableViewCell?
   
@@ -112,7 +112,7 @@ public enum DisplayState {
   }
 
   public var indexPath: IndexPath {
-    guard let sec = section?.section else {
+    guard let sec = tableSection?.section else {
       fatalError("\(self) had no section set")
     }
     return IndexPath(row: row, section: sec)
@@ -269,7 +269,7 @@ public enum DisplayState {
 
 
 
-open class UITableViewCellRow: RowDefinition {
+open class UITableViewCellRow: TableRow {
   
   open var title: String?
   
