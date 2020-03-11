@@ -81,20 +81,20 @@ open class TableController: UIViewController, TableViewFrameDelegate {
   // MARK: UITableViewDelegate
   open func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     if let cell = self.tableView.cellForRow(at: indexPath) {
-      dataSource.rowDefinition(atIndexPath: indexPath)?.performSelect(forTableViewController: self, cell: cell, indexPath: indexPath)
+      dataSource.tableRow(atIndexPath: indexPath)?.performSelect(forTableViewController: self, cell: cell, indexPath: indexPath)
     }
   }
   
   
   open func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
     if let cell = self.tableView.cellForRow(at: indexPath) {
-      dataSource.rowDefinition(atIndexPath: indexPath)?.perform__Deselect__(forTableViewController: self, cell: cell, indexPath: indexPath)
+      dataSource.tableRow(atIndexPath: indexPath)?.perform__Deselect__(forTableViewController: self, cell: cell, indexPath: indexPath)
     }
   }
   
   
   open func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-    if let row = dataSource.rowDefinition(atIndexPath: indexPath) {
+    if let row = dataSource.tableRow(atIndexPath: indexPath) {
       row.displayState = .onScreen
       cell.selectionStyle = row.selectionStyle
       row.tableViewController(self, willDisplay: cell, forRowAt: indexPath)
@@ -104,14 +104,14 @@ open class TableController: UIViewController, TableViewFrameDelegate {
   
   
   open func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-    guard let row = dataSource.rowDefinition(atIndexPath: indexPath) else { return }
+    guard let row = dataSource.tableRow(atIndexPath: indexPath) else { return }
     row.displayState = .offScreen
     row.tableViewController(self, didEndDisplaying: cell, forRowAt: indexPath)
   }
   
   
   open func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-    return dataSource.rowDefinition(atIndexPath: indexPath)?.preferredCellHeightCalculated ?? 44
+    return dataSource.tableRow(atIndexPath: indexPath)?.preferredCellHeightCalculated ?? 44
   }
   
   
