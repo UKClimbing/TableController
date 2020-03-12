@@ -8,7 +8,7 @@
 
 import UIKit
 
-open class TableController: UIViewController, TableViewFrameDelegate {
+@objc open class TableController: UIViewController, TableViewFrameDelegate {
   
   @objc open var dataSource: TableDataSource
   

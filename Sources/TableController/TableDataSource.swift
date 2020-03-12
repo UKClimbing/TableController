@@ -23,7 +23,7 @@
 import UIKit
 import KeyboardMonitor
 
-open class TableDataSource: NSObject, UITableViewDataSource, UITableViewDataSourcePrefetching, KeyboardMonitorDelegate {
+@objc open class TableDataSource: NSObject, UITableViewDataSource, UITableViewDataSourcePrefetching, KeyboardMonitorDelegate {
   
   open weak var controller: TableController?
   
