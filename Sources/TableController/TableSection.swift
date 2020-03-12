@@ -11,8 +11,8 @@ import UIKit
 
 @objc open class TableSection: NSObject {
   
-  public typealias BeforeDisplayBlock = (TableViewHeaderFooterBlockContextWithController)->Void
-  public typealias AfterDisplayBlock = (TableViewHeaderFooterBlockContextWithController)->Void
+  public typealias BeforeDisplayBlock = (TableViewHeaderFooterWithControllerBlockContext)->Void
+  public typealias AfterDisplayBlock = (TableViewHeaderFooterWithControllerBlockContext)->Void
   
   
   /// The base implementaion of tableView(tableView:, didDisplay:, forRowAt:) calls this block if it exists.
@@ -20,7 +20,7 @@ import UIKit
   open var beforeDisplay: BeforeDisplayBlock?
   
   
-  open var displayState: DisplayState = .offScreen
+  open var displayState: TableRow.DisplayState = .offScreen
   
   open var isOnScreen: Bool { return displayState == .onScreen }
   
@@ -115,7 +115,7 @@ import UIKit
   ///   - view: The header/footer view that will be diplayed.
   ///   - section: The section for the view.
   open func tableViewController(_ controller: TableController, willDisplayHeaderView view: UIView, forSection section: Int) {
-    let context = TableViewHeaderFooterBlockContextWithController(controller: controller, view: view, section: section, tableSection: self)
+    let context = TableViewHeaderFooterWithControllerBlockContext(controller: controller, view: view, section: section, tableSection: self)
     beforeDisplay?(context)
   }
   
