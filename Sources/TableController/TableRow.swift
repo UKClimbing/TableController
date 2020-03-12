@@ -13,16 +13,7 @@ import UIKit
 /// This class is designed to be subclassed. It provides the basic funtionality surrounding the row selection and willDisplay stuff.
 @objc open class TableRow: NSObject {
   
-  public enum DisplayState {
-    case onScreen
-    case offScreen
-  }
-  
-  public typealias OnSelectBlock = (TableViewCellBlockContextWithController)->Void
-  public typealias ConfigureCellBlock = (TableViewCellBlockContextWithTableView)->Void
-  public typealias OnDeselectBlock = OnSelectBlock
-  public typealias BeforeDisplayBlock = OnSelectBlock
-  public typealias AfterDisplayBlock = OnSelectBlock
+
   public typealias ScrollViewBlock = (UIScrollView, TableRow)->Void
   
   
@@ -37,7 +28,7 @@ import UIKit
   }
 
   public var indexPath: IndexPath {
-    guard let sec = tableSection?.section else {
+    guard let sec = tableSection?.index else {
       fatalError("\(self) had no section set")
     }
     return IndexPath(row: row, section: sec)
@@ -47,10 +38,10 @@ import UIKit
   open var row: Int = -1
   
   
-  open var displayState: DisplayState = .offScreen
+  open var displayState: TableController.DisplayState = .hidden
   
   
-  public var isOnScreen: Bool { return displayState == .onScreen }
+  public var isOnScreen: Bool { return displayState == .visible }
   
   
   // override this if you want to be able to identify the rows by their contents
@@ -65,30 +56,7 @@ import UIKit
   open var cellClass: AnyClass = UITableViewCell.self
     
   
-  /// The base implementaion of tableView(tableView:, didDisplay:, forRowAt:) calls this block if it exists.
-  /// Set this block if you prefer to use a declarative style of behaviour definition.
-  open var configureCell: ConfigureCellBlock?
-  
-  
-  /// The base implementaion of tableView(tableView:, didDisplay:, forRowAt:) calls this block if it exists.
-  // Set this block if you prefer to use a declarative style of behaviour definition.
-  open var beforeDisplay: BeforeDisplayBlock?
-  
-  /// The base implementaion of tableView(tableView:, willDisplay:, forRowAt:) calls this block if it exists.
-  /// Set this block if you prefer to use a declarative style of behaviour definition.
-  open var afterDisplay: AfterDisplayBlock?
-  
-  /// The base implementaion of performSelect(forTableNode:, cell:, indexPath:) calls this block if it exists.
-  /// Set this block if you prefer to use a declarative style of behaviour definition.
-  open var onSelect: OnSelectBlock?
-  
-  
-  /// The base implementaion of performDeselect(forTableNode:, cell:, indexPath:) calls this block if it exists.
-  /// Set this block if you prefer to use a declarative style of behaviour definition.
-  open var onDeselect: OnDeselectBlock?
-  
-  
-  open var scrollViewDidScroll: ScrollViewBlock?
+  open var onScroll: ScrollViewBlock?
   
   
   open var selectionStyle: UITableViewCell.SelectionStyle = .none
@@ -123,8 +91,7 @@ import UIKit
   ///   - cell: The deselected cell.
   ///   - indexPath: The index path for the cell.
   open func performSelect(forTableViewController controller: TableController, cell: UITableViewCell, indexPath: IndexPath) {
-    let context = TableViewCellBlockContextWithController(controller: controller, cell: cell, indexPath: indexPath, tableRow: self)
-    onSelect?(context)
+
   }
   
   
@@ -137,18 +104,14 @@ import UIKit
   ///   - cell: The deselected cell.
   ///   - indexPath: The index path for the cell.
   open func perform__Deselect__(forTableViewController controller: TableController, cell: UITableViewCell, indexPath: IndexPath) {
-    let context = TableViewCellBlockContextWithController(controller: controller, cell: cell, indexPath: indexPath, tableRow: self)
-    onDeselect?(context)
+
   }
-  
   
   
   open func configure(cell: UITableViewCell, tableView: UITableView, indexPath: IndexPath) {
     if let backgroundColor = backgroundColor {
       cell.backgroundColor = backgroundColor
     }
-    let context = TableViewCellBlockContextWithTableView(tableView: tableView, cell: cell, indexPath: indexPath, tableRow: self)
-    configureCell?(context)
   }
   
   
@@ -171,9 +134,7 @@ import UIKit
   ///   - tableView: The table view.
   ///   - cell: The cell that will be diplayed.
   ///   - indexPath: The index path for the cell.
-  open func tableViewController(_ controller: TableController, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-    let context = TableViewCellBlockContextWithController(controller: controller, cell: cell, indexPath: indexPath, tableRow: self)
-    beforeDisplay?(context)
+  open func tableController(_ controller: TableController, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
     cell.setNeedsLayout()
   }
   
@@ -185,9 +146,8 @@ import UIKit
   ///   - tableView: The table view.
   ///   - cell: The cell that is leaving the display area.
   ///   - indexPath: The index path for the cell.
-  open func tableViewController(_ controller: TableController, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-    let context = TableViewCellBlockContextWithController(controller: controller, cell: cell, indexPath: indexPath, tableRow: self)
-    afterDisplay?(context)
+  open func tableController(_ controller: TableController, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+
   }
   
 }

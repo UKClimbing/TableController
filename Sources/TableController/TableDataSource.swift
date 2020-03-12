@@ -13,7 +13,7 @@
  
  This class can either automatically manage registering classes with the tableView (nibs are not supported), or semi-automatically manage the registration.
  
- - To manage automatically: each tableRow you create needs to return a value for both `cellClass` and `cellIdentifier`. These are registered with the tableView the first time these definitions are included in the `dataSource.sections`'s `rows`.
+ - To manage automatically: each tableRow you create needs to return a value for both `cellClass` and `cellIdentifier`. These are registered with the tableView the first time these definitions are included in the `dataSource.tableSections`'s `rows`.
    In addition, you should return values for the `tableSection`'s `headerViewIdentifier` and `headerViewClass`. These will be used in the same way.
  
  - To manage in a semi-automatic fashion, which will require less overhead each time you set the `sections` property (ie filter the dataSource) and is therefore perhaps preferable for very long tableviews, set `automaticallyRegistersClasses` to `false` and set up the properties `tableViewHeaderClasses` and `tableViewClasses` in your dataSource subclass.
@@ -25,13 +25,15 @@ import KeyboardMonitor
 
 @objc open class TableDataSource: NSObject, UITableViewDataSource, UITableViewDataSourcePrefetching, KeyboardMonitorDelegate {
   
-  open weak var controller: TableController?
-  
+
   /// A set to keep track of what classes area registered already
   private var registeredRowIdentifiers = Set<String>()
   private var registeredHeaderIdentifiers = Set<String>()
   
   private var scrollViewDelegates = Set<TableRow>()
+  
+
+  open weak var controller: TableController?
   
   open var automaticallyRegistersClasses: Bool = true
   
@@ -46,38 +48,6 @@ import KeyboardMonitor
   open var tableView: UITableView?
   open var tableSections = [TableSection]() { didSet { _sectionsDidSet() } }
   open var tableRows: [TableRow] { return tableSections.map { $0.tableRows }.flatMap { $0 } }
-  
-  private func _sectionsDidSet() {
-    for (index, section) in tableSections.enumerated() { 
-      section.section = index
-      section.controller = controller 
-    }
-    if automaticallyRegistersClasses == true, let tableView = tableView {
-      registerClasses(tableView: tableView)
-    }
-    if let emptyDatasetView = emptyDatasetView {
-      if adjustEmptyDatasetViewPositionForKeyboard {
-        KeyboardMonitor.shared.register(delegate: self)
-      }
-      if tableSections.isEmpty {
-        emptyDatasetView.isHidden = false
-        tableView?.isScrollEnabled = false
-        tableView?.addSubview(emptyDatasetView)
-        setEmptyDatasetViewFrameIfNeeded()
-      } else {
-        emptyDatasetView.isHidden = true
-        tableView?.isScrollEnabled = true
-      }
-    }
-  }
-  
-  private func _heightForEmptyDatasetView() -> CGFloat {
-    guard let tv = tableView else { return 0 }
-    let tvFrame = tv.convert(tv.bounds, to: tv.window)
-    let kbRect = KeyboardMonitor.shared.keyboardFrame
-    let diff = kbRect.minY - tvFrame.minY - tv.contentInset.top
-    return [diff, tv.frame.height - (tv.tableHeaderView?.frame.height ?? tv.contentInset.top)].min()!
-  }
 
   
   // This calculates the required height of all the rows
@@ -91,6 +61,16 @@ import KeyboardMonitor
   /// Override this property to provide the identifiers and classes for the tableView
   /// to register.
   open var tableViewHeaderClasses: [String: AnyClass]? { return [String: AnyClass]() }
+  
+  
+  
+  
+  /// Override in subclasses.
+  ///
+  /// - Remark: This function should set the property `sections`. It is left to you how to implement this so that you can do the work in the background if necessary.
+  open func generateSections() {
+    fatalError("You must override this method in subclasses")
+  }
   
   
   /// Override this function to specifiy the identifier to use for a specific indexPath.
@@ -155,9 +135,44 @@ import KeyboardMonitor
   }
   
   
-  // MARK: UITableViewDataSource
+  private func _sectionsDidSet() {
+    for (index, section) in tableSections.enumerated() {
+      section.index = index
+      section.controller = controller
+    }
+    if automaticallyRegistersClasses == true, let tableView = tableView {
+      registerClasses(tableView: tableView)
+    }
+    if let emptyDatasetView = emptyDatasetView {
+      if adjustEmptyDatasetViewPositionForKeyboard {
+        KeyboardMonitor.shared.register(delegate: self)
+      }
+      if tableSections.isEmpty {
+        emptyDatasetView.isHidden = false
+        tableView?.isScrollEnabled = false
+        tableView?.addSubview(emptyDatasetView)
+        setEmptyDatasetViewFrameIfNeeded()
+      } else {
+        emptyDatasetView.isHidden = true
+        tableView?.isScrollEnabled = true
+      }
+    }
+  }
   
-  open func sectionDefinition(at index: Int) -> TableSection? {
+  
+  private func _heightForEmptyDatasetView() -> CGFloat {
+    guard let tv = tableView else { return 0 }
+    let tvFrame = tv.convert(tv.bounds, to: tv.window)
+    let kbRect = KeyboardMonitor.shared.keyboardFrame
+    let diff = kbRect.minY - tvFrame.minY - tv.contentInset.top
+    return [diff, tv.frame.height - (tv.tableHeaderView?.frame.height ?? tv.contentInset.top)].min()!
+  }
+  
+  
+  
+  /// MARK: UITableViewDataSource
+  
+  open func tableSection(at index: Int) -> TableSection? {
     if tableSections.count <= index {
       return nil
     }
@@ -171,7 +186,7 @@ import KeyboardMonitor
   
   
   open func tableRow(atIndexPath indexPath: IndexPath) -> TableRow? {
-    guard let section = sectionDefinition(at: indexPath.section) else {
+    guard let section = tableSection(at: indexPath.section) else {
       return nil
     }
     if section.tableRows.count <= indexPath.row {
@@ -182,7 +197,7 @@ import KeyboardMonitor
     
     definition.controller = controller
     
-    if definition.scrollViewDidScroll != nil {
+    if definition.onScroll != nil {
       scrollViewDelegates.insert(definition)
     }
     
@@ -227,27 +242,18 @@ import KeyboardMonitor
   
   
   open func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return self.sectionDefinition(at: section)?.tableRows.count ?? 0
+    return self.tableSection(at: section)?.tableRows.count ?? 0
   }
   
-  
-  
-  
-  
-  /// Override in subclasses.
-  ///
-  /// - Remark: This function should set the property `sections`. It is left to you how to implement this so that you can do the work in the background if necessary.  
-  open func generateSections() {
-    fatalError("You must override this method in subclasses")
-  }
-  
+
   
   
   open func scrollViewDidScroll(_ scrollView: UIScrollView) {
     for del in scrollViewDelegates {
-      del.scrollViewDidScroll?(scrollView, del)
+      del.onScroll?(scrollView, del)
     }
   }
+  
   
   
   // MARK: KeyboardMonitorDelegate
@@ -255,13 +261,6 @@ import KeyboardMonitor
   open func keyboardWillChange(frame: CGRect) {
     animateEmptyDatasetViewFrame()
   }
-  
-  
-  private lazy var queue: OperationQueue = {
-    let q = OperationQueue()
-    q.maxConcurrentOperationCount = 1
-    return q
-  }()
   
   
   open func animateEmptyDatasetViewFrame() {
