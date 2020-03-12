@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "KeyboardMonitor",
+        "repositoryURL": "https://github.com/ryecroft/KeyboardMonitor.git",
+        "state": {
+          "branch": null,
+          "revision": "01af5baed0ee69511e27c675982f6e0155690f07",
+          "version": "1.0.1"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
