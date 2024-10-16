@@ -88,7 +88,7 @@ import KeyboardMonitor
     tableView.dataSource = self
     setupForTableView(tableView)
     generateSections()
-    if automaticallyRegistersClasses == false {
+    if !automaticallyRegistersClasses {
       semiAutoRegisterClasses(tableView: tableView)
     }
   }
@@ -119,14 +119,14 @@ import KeyboardMonitor
         guard let identifier = section.headerViewIdentifier else {
           fatalError("A headerViewIdentifier must be provided to go with a headerViewClass")
         }
-        if registeredHeaderIdentifiers.contains(identifier) == false {
+        if !registeredHeaderIdentifiers.contains(identifier) {
           registeredHeaderIdentifiers.insert(identifier)
           tableView.register(klass, forHeaderFooterViewReuseIdentifier: identifier)
         }
       }
       for row in section.tableRows {
         let identifier = row.cellIdentifier
-        if registeredRowIdentifiers.contains(identifier) == false {
+        if !registeredRowIdentifiers.contains(identifier) {
           registeredRowIdentifiers.insert(identifier)
           tableView.register(row.cellClass, forCellReuseIdentifier: identifier)
         }
@@ -140,7 +140,7 @@ import KeyboardMonitor
       section.index = index
       section.controller = controller
     }
-    if automaticallyRegistersClasses == true, let tableView = tableView {
+    if automaticallyRegistersClasses, let tableView = tableView {
       registerClasses(tableView: tableView)
     }
     if let emptyDatasetView = emptyDatasetView {
@@ -277,10 +277,10 @@ import KeyboardMonitor
     if f.size == .zero, let s = tableView?.frame.size {
       f.size = s
     }
-    var rect = CGRect.null
-    for subview in emptyDatasetView.subviews {
-      rect = rect.union(subview.frame)
-    }
+    var rect = emptyDatasetView.superview?.bounds ?? CGRect.zero
+//    for subview in emptyDatasetView.subviews {
+//      rect = rect.union(subview.frame)
+//    }
     rect = rect.integral
     emptyDatasetView.frame = rect
     emptyDatasetView.center = CGPoint(x: f.midX.rounded(), y: f.midY.rounded())

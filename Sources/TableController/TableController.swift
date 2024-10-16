@@ -8,7 +8,7 @@
 
 import UIKit
 
-@objc open class TableController: UIViewController {
+@objc open class TableController: ViewController {
   
   
   public enum DisplayState {
@@ -16,29 +16,26 @@ import UIKit
     case visible
   }
   
+  open override var canBecomeFirstResponder: Bool { true }
+  
   
   @objc open var dataSource: TableDataSource
   
+  @objc open var tableView: BaseTableView
   
-  @objc open var tableView: UITableView
-  
-  
-  private var _viewDidAppearAtLeastOnce: Bool = false
-    
   
   public init(style: UITableView.Style, dataSource: TableDataSource) {
     self.dataSource = dataSource
-    tableView = UITableView(frame: .zero, style: style)
+    tableView = BaseTableView(frame: .zero, style: style)
     super.init(nibName: nil, bundle: nil)
     dataSource.controller = self
     tableView.delegate = self
-    if #available(iOS 11.0, *) {
-      tableView.contentInsetAdjustmentBehavior = .never
+    if #available(iOS 15.0, *) {
+      tableView.sectionHeaderTopPadding = 0.0  
     }
+    tableView.contentInsetAdjustmentBehavior = .never
     tableView.dataSource = dataSource
-    if #available(iOS 10.0, *) {
-      tableView.prefetchDataSource = dataSource
-    }
+    tableView.prefetchDataSource = dataSource
     tableView.estimatedRowHeight = 0
     tableView.separatorStyle = .none
     modalPresentationStyle = .fullScreen
@@ -47,13 +44,6 @@ import UIKit
   
   public required init?(coder aDecoder: NSCoder) {
     fatalError("No one likes storyboards.")
-  }
-  
-  
-
-  /// Override if you like
-  open func viewDidAppearFirstTime(_ animated: Bool) {
-    
   }
   
   
@@ -71,24 +61,28 @@ extension TableController {
   
   override open func viewDidLoad() {
     super.viewDidLoad()
+    tableView.contentInsetAdjustmentBehavior = .never
     view.addSubview(tableView)
     tableView.frame = view.bounds
     dataSource._setupForTableView(tableView)
   }
-  
-  
-  override open func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    if _viewDidAppearAtLeastOnce == false {
-      _viewDidAppearAtLeastOnce = true
-      viewDidAppearFirstTime(animated)
-    }
-  }
-  
+
   
   override open func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
     tableView.frame = view.bounds
+  }
+  
+  
+}
+
+
+
+extension TableController: TableViewFrameDelegate {
+  
+  
+  open func tableViewFrameDidChange(_ tableView: UITableView) {
+    dataSource.setEmptyDatasetViewFrameIfNeeded()
   }
   
   
@@ -113,6 +107,13 @@ extension TableController: UITableViewDelegate {
       row.tableController(self, willDisplay: cell, forRowAt: indexPath)
       link(cell: cell, with: row)
     }
+    if let cell = cell as? PaddingCell {
+      if indexPath.section + 1 == dataSource.numberOfSections(in: tableView) && indexPath.row + 1 == dataSource.tableView(tableView, numberOfRowsInSection: indexPath.section) {
+        cell.extensionViewHeightModifier = Rockfax.maxScreenEdge()
+      } else {
+        cell.extensionViewHeightModifier = 0
+      }
+    }
   }
   
   
@@ -125,7 +126,7 @@ extension TableController: UITableViewDelegate {
   
   open func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
     if let cell = self.tableView.cellForRow(at: indexPath) {
-      dataSource.tableRow(atIndexPath: indexPath)?.perform__Deselect__(forTableViewController: self, cell: cell, indexPath: indexPath)
+      dataSource.tableRow(atIndexPath: indexPath)?.perform__DESELECT__(forTableViewController: self, cell: cell, indexPath: indexPath)
     }
   }
 
@@ -133,7 +134,7 @@ extension TableController: UITableViewDelegate {
   open func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
     guard let row = dataSource.tableRow(atIndexPath: indexPath) else { return }
     row.displayState = .hidden
-    row.tableController(self, willDisplay: cell, forRowAt: indexPath)
+    row.tableController(self, didEndDisplaying: cell, forRowAt: indexPath)
   }
   
   
@@ -190,6 +191,80 @@ extension TableController /* UIScrollViewDelegate */ {
   open func scrollViewDidScroll(_ scrollView: UIScrollView) {
     dataSource.scrollViewDidScroll(scrollView)
   }
+  
+}
+
+
+
+extension TableController {
+  
+  
+  @objc func reloadData() {
+    dataSource.generateSections()
+    tableView.reloadData()
+  }
+  
+  
+}
+
+
+
+open class BaseTableView: UITableView {
+  
+  
+  open override var frame: CGRect {
+    didSet {
+      if let del = delegate as? TableViewFrameDelegate {
+        del.tableViewFrameDidChange?(self)
+      }
+    }
+  }
+
+  
+  var image: UIImage? {
+    var image: UIImage? = nil
+
+    UIGraphicsBeginImageContextWithOptions(contentSize, _: false, _: 0.0)
+
+    let savedContentOffset = contentOffset
+    let savedFrame = frame
+
+    contentOffset = CGPoint.zero
+    frame = CGRect(x: 0, y: 0, width: contentSize.width, height: contentSize.height)
+
+    if let context = UIGraphicsGetCurrentContext() {
+      layer.render(in: context)
+    }
+    image = UIGraphicsGetImageFromCurrentImageContext()
+
+    contentOffset = savedContentOffset
+    frame = savedFrame
+
+    UIGraphicsEndImageContext()
+
+    return image
+  }
+  
+  
+  public override init(frame: CGRect, style: UITableView.Style) {
+    super.init(frame: frame, style: style)
+//    layoutMargins.left = 20
+//    layoutMargins.right = 20
+  }
+  
+  
+  public required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
+  
+}
+
+
+@objc public protocol TableViewFrameDelegate: UITableViewDelegate {
+  
+  
+  @objc optional func tableViewFrameDidChange(_ tableView: UITableView)
   
   
 }

@@ -9,7 +9,6 @@
 import UIKit
 
 
-
 /// This class is designed to be subclassed. It provides the basic funtionality surrounding the row selection and willDisplay stuff.
 @objc open class TableRow: NSObject {
   
@@ -18,10 +17,12 @@ import UIKit
   
   
   open weak var tableSection: TableSection?
-  open weak var controller: TableController?
+  @objc open weak var controller: TableController?
   open weak var cell: UITableViewCell?
   
-  public var backgroundColor: UIColor? {
+  open var layoutMargins: UIEdgeInsets?
+  
+  @objc public var backgroundColor: UIColor? {
     didSet {
       cell?.backgroundColor = backgroundColor
     }
@@ -103,7 +104,7 @@ import UIKit
   ///   - tableView: The table view.
   ///   - cell: The deselected cell.
   ///   - indexPath: The index path for the cell.
-  open func perform__Deselect__(forTableViewController controller: TableController, cell: UITableViewCell, indexPath: IndexPath) {
+  open func perform__DESELECT__(forTableViewController controller: TableController, cell: UITableViewCell, indexPath: IndexPath) {
 
   }
   
@@ -111,6 +112,12 @@ import UIKit
   open func configure(cell: UITableViewCell, tableView: UITableView, indexPath: IndexPath) {
     if let backgroundColor = backgroundColor {
       cell.backgroundColor = backgroundColor
+    }
+    if let layoutMargins = layoutMargins {
+      cell.layoutMargins.top += layoutMargins.top
+      cell.layoutMargins.right += layoutMargins.right
+      cell.layoutMargins.bottom += layoutMargins.bottom
+      cell.layoutMargins.left += layoutMargins.left
     }
   }
   
@@ -135,6 +142,8 @@ import UIKit
   ///   - cell: The cell that will be diplayed.
   ///   - indexPath: The index path for the cell.
   open func tableController(_ controller: TableController, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    cell.backgroundColor = backgroundColor
+    cell.layoutMargins = layoutMargins ?? cell.layoutMargins
     cell.setNeedsLayout()
   }
   
@@ -148,6 +157,19 @@ import UIKit
   ///   - indexPath: The index path for the cell.
   open func tableController(_ controller: TableController, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
 
+  }
+  
+}
+
+
+@objc extension TableRow {
+  
+  @objc public func setLayoutMargins(_ margins: UIEdgeInsets) {
+    layoutMargins = margins
+  }
+  
+  @objc public func removeLayoutMargins() {
+    layoutMargins = nil
   }
   
 }

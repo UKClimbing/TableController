@@ -84,6 +84,12 @@ import UIKit
   }
   
   
+  @objc(popLast)
+  open func popLast() -> TableRow? {
+    return _tableRows.popLast()
+  }
+  
+  
   @objc(setRows:)
   open func set(definitions: [TableRow]) {
     _tableRows = definitions
