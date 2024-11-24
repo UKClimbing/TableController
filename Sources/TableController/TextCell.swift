@@ -34,11 +34,7 @@ class TextCell: ShrinksOnTouchCell {
     super.layoutSubviews()
     let m = margins
     
-    infoLabel.sizeToFit()
-    infoLabel.width = m.width
-    infoLabel.makeFrameIntegral()
-    infoLabel.top = m.top
-    infoLabel.left = m.left
+    infoLabel.frame = m.frame
   }
 
   

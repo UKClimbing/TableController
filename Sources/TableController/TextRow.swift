@@ -12,15 +12,35 @@ import Foundation
 @objc class TextRow: TableRow {
   
   
+  static var heightCache = [ String : CGFloat ]()
+  
+  
+  var numberOfLines = 0
+  
+  
+  override var baseHeightCacheKey: String? {
+    return "\(text)_\(font?.signature ?? "no_sig")_\(textColor.signature)_\(textAlignment.rawValue)"
+  }
+  
+  
   override var preferredCellHeightCalculated: CGFloat {
-    guard var width = controller?.view.margins.width,
-          let cell = cell as? TextCell,
-          let textFont = cell.textLabel?.font
-      else { return preferredCellHeight }
+    guard var width = controller?.view.margins.width else {
+      return preferredCellHeight
+    }
+    let key = heightCacheKey(for: width)
+    if let cached = TextRow.heightCache[ key ] {
+      return cached
+    }
+    guard let cell = cell as? TextCell,
+          let textFont = cell.textLabel?.font else {
+      return preferredCellHeight
+    }
     width = cell.margins.width
-    let modifier = cell.layoutMargins  .top + cell.layoutMargins.bottom + Units.small // for the gap
+    let modifier = cell.layoutMargins.top + cell.layoutMargins.bottom // + Units.small // for the gap
     let textHeight = text.height(with: textFont, width: width)
     let total = textHeight + modifier
+    let newKey = heightCacheKey(for: width)
+    TextRow.heightCache[ newKey ] = total
     return total
   }
   
@@ -45,9 +65,43 @@ import Foundation
     guard let cell = cell as? TextCell else { return }
     cell.infoLabel.font = font ?? cell.infoLabel.font
     cell.infoLabel.text = text
+    cell.infoLabel.numberOfLines = numberOfLines
     cell.infoLabel.textAlignment = textAlignment
     cell.infoLabel.textColor = textColor
   }
   
   
+}
+
+
+
+extension UIFont {
+  var signature: String {
+    let descriptor = self.fontDescriptor
+    let name = descriptor.fontAttributes[.name] as? String ?? "Unknown"
+    let family = descriptor.fontAttributes[.family] as? String ?? "Unknown"
+    let pointSize = String(format: "%.1f", self.pointSize)
+    return "\(family)-\(name)-\(pointSize)"
+  }
+}
+
+
+
+
+extension UIColor {
+  var signature: String {
+    var red: CGFloat = 0
+    var green: CGFloat = 0
+    var blue: CGFloat = 0
+    var alpha: CGFloat = 0
+    
+    self.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+    
+    let redHex = String(format: "%02X", Int(red * 255))
+    let greenHex = String(format: "%02X", Int(green * 255))
+    let blueHex = String(format: "%02X", Int(blue * 255))
+    let alphaHex = String(format: "%02X", Int(alpha * 255))
+    
+    return "#\(redHex)\(greenHex)\(blueHex)\(alphaHex)"
+  }
 }

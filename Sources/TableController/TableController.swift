@@ -139,8 +139,26 @@ extension TableController: UITableViewDelegate {
   
   
   open func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-    return dataSource.tableRow(atIndexPath: indexPath)?.preferredCellHeightCalculated ?? 44
+    if let height = dataSource.tableRow(atIndexPath: indexPath)?.preferredCellHeightCalculated {
+      return height
+    }
+    return 44
   }
+  
+  
+  public func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+    return self.tableView(tableView, heightForRowAt: indexPath)
+  }
+  
+  
+  public func tableView(_ tableView: UITableView, estimatedHeightForHeaderInSection section: Int) -> CGFloat {
+    return self.tableView(tableView, heightForHeaderInSection: section)
+  }
+  
+  
+//  public func tableView(_ tableView: UITableView, estimatedHeightForFooterInSection section: Int) -> CGFloat {
+//    return self.tableView(tableView, heightForFooterInSection: section)
+//  }
   
   
   open func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -212,6 +230,9 @@ extension TableController {
 open class BaseTableView: UITableView {
   
   
+  var isContentOffsetLocked = false
+  
+  
   open override var frame: CGRect {
     didSet {
       if let del = delegate as? TableViewFrameDelegate {
@@ -219,37 +240,73 @@ open class BaseTableView: UITableView {
       }
     }
   }
+  
+  
+  open override var contentOffset: CGPoint {
+    set {
+      if isContentOffsetLocked { return }
+      if newValue.y > contentOffset.y {
+        var t: String? = ""
+        t = nil
+      }
+      if newValue.y < contentOffset.y {
+        var t: String? = ""
+        t = nil
+      }
+      super.contentOffset = newValue
+    }
+    get {
+      return super.contentOffset
+    }
+  }
+  
+  
+  open override var contentInset: UIEdgeInsets {
+    didSet {
+      RFLog.info("didSet: \(contentInset)")
+    }
+  }
+  
+  
+  open override var contentSize: CGSize {
+    get {
+      return super.contentSize
+    }
+    set {
+      if contentSize.height != newValue.height {
+        var t: String? = ""
+        t = nil
+      }
+      super.contentSize = newValue
+    }
+  }
 
   
   var image: UIImage? {
-    var image: UIImage? = nil
+    let renderer = UIGraphicsImageRenderer(size: contentSize)
 
-    UIGraphicsBeginImageContextWithOptions(contentSize, _: false, _: 0.0)
+    return renderer.image { _ in
+      let savedContentOffset = contentOffset
+      let savedFrame = frame
+      
+      let size = contentSize
+      if size.width == 0 || size.height == 0 {
+        return
+      }
 
-    let savedContentOffset = contentOffset
-    let savedFrame = frame
+      contentOffset = .zero
+      frame = CGRect(x: 0, y: 0, width: contentSize.width, height: contentSize.height)
 
-    contentOffset = CGPoint.zero
-    frame = CGRect(x: 0, y: 0, width: contentSize.width, height: contentSize.height)
+      layer.render(in: UIGraphicsGetCurrentContext()!)
 
-    if let context = UIGraphicsGetCurrentContext() {
-      layer.render(in: context)
+      contentOffset = savedContentOffset
+      frame = savedFrame
     }
-    image = UIGraphicsGetImageFromCurrentImageContext()
-
-    contentOffset = savedContentOffset
-    frame = savedFrame
-
-    UIGraphicsEndImageContext()
-
-    return image
   }
   
   
   public override init(frame: CGRect, style: UITableView.Style) {
     super.init(frame: frame, style: style)
-//    layoutMargins.left = 20
-//    layoutMargins.right = 20
   }
   
   

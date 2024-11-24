@@ -69,6 +69,14 @@ import UIKit
   open var preferredCellHeightCalculated: CGFloat { return preferredCellHeight }
   
   
+  var baseHeightCacheKey: String? { nil }
+  
+  
+  func heightCacheKey(for width: CGFloat) -> String {
+    return "\(width)_\(baseHeightCacheKey ?? "nowt")_\(String(describing:self))"
+  }
+  
+  
   @objc public override init() {
     super.init()
     selectionStyle = .none

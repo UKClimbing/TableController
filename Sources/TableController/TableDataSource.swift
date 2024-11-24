@@ -51,7 +51,11 @@ import KeyboardMonitor
 
   
   // This calculates the required height of all the rows
-  open var calculatedContentSize: CGFloat { return tableSections.flatMap { $0.tableRows }.reduce(0) { result, next in return result + next.preferredCellHeightCalculated } }
+  open var calculatedContentSize: CGFloat {
+    let rowHeight = tableSections.flatMap { $0.tableRows }.reduce(0) { result, next in return result + next.preferredCellHeightCalculated }
+    let headerHeight = tableSections.compactMap { $0.headerHeight }.reduce(0) { result, next in return result + next }
+    return rowHeight + headerHeight
+  }
   
   /// Override this property to provide the identifiers and classes for the tableView
   /// to register. This will only be used if you also set `automaticallyRegistersClasses` to `false`.
@@ -117,7 +121,8 @@ import KeyboardMonitor
     for section in tableSections {
       if let klass = section.headerViewClass {
         guard let identifier = section.headerViewIdentifier else {
-          fatalError("A headerViewIdentifier must be provided to go with a headerViewClass")
+          RFLog.warn("A headerViewIdentifier must be provided to go with a headerViewClass")
+          return
         }
         if !registeredHeaderIdentifiers.contains(identifier) {
           registeredHeaderIdentifiers.insert(identifier)
