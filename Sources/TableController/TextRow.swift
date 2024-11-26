@@ -27,7 +27,7 @@ import Foundation
     guard var width = controller?.view.margins.width else {
       return preferredCellHeight
     }
-    let key = heightCacheKey(for: width)
+    var key = heightCacheKey(for: width)
     if let cached = TextRow.heightCache[ key ] {
       return cached
     }
@@ -35,12 +35,15 @@ import Foundation
           let textFont = cell.textLabel?.font else {
       return preferredCellHeight
     }
+    key = heightCacheKey(for: width)
     width = cell.margins.width
     let modifier = cell.layoutMargins.top + cell.layoutMargins.bottom // + Units.small // for the gap
     let textHeight = text.height(with: textFont, width: width)
     let total = textHeight + modifier
     let newKey = heightCacheKey(for: width)
     TextRow.heightCache[ newKey ] = total
+    controller?.view.setNeedsLayout()
+    controller?.view.layoutIfNeeded()
     return total
   }
   

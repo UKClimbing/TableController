@@ -73,7 +73,13 @@ import UIKit
   
   
   func heightCacheKey(for width: CGFloat) -> String {
-    return "\(width)_\(baseHeightCacheKey ?? "nowt")_\(String(describing:self))"
+    var mod = ""
+    if let cell = cell as? TextCell,
+          let textFont = cell.textLabel?.font {
+      let modifier = cell.layoutMargins.top + cell.layoutMargins.bottom // + Units.small // for the gap
+      mod = "cell.layoutMargins.top:\(cell.layoutMargins.top)_cell.layoutMargins.bottom:\(cell.layoutMargins.bottom)_"
+    }
+    return "\(mod)\(width)_\(baseHeightCacheKey ?? "nowt")_\(String(describing:self))"
   }
   
   
