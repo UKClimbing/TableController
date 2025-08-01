@@ -259,27 +259,6 @@ open class BaseTableView: UITableView {
       return super.contentOffset
     }
   }
-  
-  
-  open override var contentInset: UIEdgeInsets {
-    didSet {
-      RFLog.info("didSet: \(contentInset)")
-    }
-  }
-  
-  
-  open override var contentSize: CGSize {
-    get {
-      return super.contentSize
-    }
-    set {
-      if contentSize.height != newValue.height {
-        var t: String? = ""
-        t = nil
-      }
-      super.contentSize = newValue
-    }
-  }
 
   
   var image: UIImage? {

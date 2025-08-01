@@ -17,28 +17,21 @@ import Foundation
   
   var numberOfLines = 0
   
-  
   override var baseHeightCacheKey: String? {
-    return "\(text)_\(font?.signature ?? "no_sig")_\(textColor.signature)_\(textAlignment.rawValue)"
+    return "\(text)_\(font.signature)_\(textColor.signature)_\(textAlignment.rawValue)"
   }
   
   
   override var preferredCellHeightCalculated: CGFloat {
-    guard var width = controller?.view.margins.width else {
+    guard let width = controller?.view.margins.width else {
       return preferredCellHeight
     }
-    var key = heightCacheKey(for: width)
+    let key = heightCacheKey(for: width)
     if let cached = TextRow.heightCache[ key ] {
       return cached
     }
-    guard let cell = cell as? TextCell,
-          let textFont = cell.textLabel?.font else {
-      return preferredCellHeight
-    }
-    key = heightCacheKey(for: width)
-    width = cell.margins.width
-    let modifier = cell.layoutMargins.top + cell.layoutMargins.bottom // + Units.small // for the gap
-    let textHeight = text.height(with: textFont, width: width)
+    let modifier = layoutMargins.top + layoutMargins.bottom // + Units.small // for the gap
+    let textHeight = text.height(with: font, width: width)
     let total = textHeight + modifier
     let newKey = heightCacheKey(for: width)
     TextRow.heightCache[ newKey ] = total
@@ -50,7 +43,7 @@ import Foundation
   
   
   @objc var text: String
-  @objc var font: UIFont?
+  @objc var font: UIFont = .body
   @objc var textColor = Colors.darkText
   @objc var textAlignment = NSTextAlignment.left
   
@@ -66,7 +59,7 @@ import Foundation
   override func tableController(_ controller: TableController, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
     super.tableController(controller, willDisplay: cell, forRowAt: indexPath)
     guard let cell = cell as? TextCell else { return }
-    cell.infoLabel.font = font ?? cell.infoLabel.font
+    cell.infoLabel.font = font 
     cell.infoLabel.text = text
     cell.infoLabel.numberOfLines = numberOfLines
     cell.infoLabel.textAlignment = textAlignment

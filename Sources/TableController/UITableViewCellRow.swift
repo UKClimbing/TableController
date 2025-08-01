@@ -12,20 +12,15 @@ open class UITableViewCellRow: TableRow {
   
   open override var preferredCellHeightCalculated: CGFloat {
     guard let t = title, 
-          var width = controller?.view.margins.width else {
+          let width = controller?.view.margins.width else {
       return preferredCellHeight
     }
     let key = heightCacheKey(for: width)
     if let cached = TextRow.heightCache[ key ] {
       return cached
     }
-    guard let cell = cell as? TextCell,
-          let textFont = cell.textLabel?.font else {
-      return preferredCellHeight
-    }
-    width = cell.margins.width
-    let modifier = cell.layoutMargins.top + cell.layoutMargins.bottom // + Units.small // for the gap
-    let textHeight = t.height(with: textFont, width: width)
+    let modifier = layoutMargins.top + layoutMargins.bottom // + Units.small // for the gap
+    let textHeight = t.height(with: font, width: width)
     let total = textHeight + modifier
     let newKey = heightCacheKey(for: width)
     TextRow.heightCache[ newKey ] = total

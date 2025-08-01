@@ -20,7 +20,7 @@ import UIKit
   @objc open weak var controller: TableController?
   open weak var cell: UITableViewCell?
   
-  open var layoutMargins: UIEdgeInsets?
+  open var layoutMargins: UIEdgeInsets = UIEdgeInsets(top: Padding.standard, left: Padding.standard, bottom: Padding.standard, right: Padding.standard)
   
   @objc public var backgroundColor: UIColor? {
     didSet {
@@ -77,7 +77,7 @@ import UIKit
     if let cell = cell as? TextCell,
           let textFont = cell.textLabel?.font {
       let modifier = cell.layoutMargins.top + cell.layoutMargins.bottom // + Units.small // for the gap
-      mod = "cell.layoutMargins.top:\(cell.layoutMargins.top)_cell.layoutMargins.bottom:\(cell.layoutMargins.bottom)_"
+      mod = "font:\(textFont)_modifier:\(modifier)_cell.layoutMargins.top:\(cell.layoutMargins.top)_cell.layoutMargins.bottom:\(cell.layoutMargins.bottom)_"
     }
     return "\(mod)\(width)_\(baseHeightCacheKey ?? "nowt")_\(String(describing:self))"
   }
@@ -127,12 +127,10 @@ import UIKit
     if let backgroundColor = backgroundColor {
       cell.backgroundColor = backgroundColor
     }
-    if let layoutMargins = layoutMargins {
-      cell.layoutMargins.top += layoutMargins.top
-      cell.layoutMargins.right += layoutMargins.right
-      cell.layoutMargins.bottom += layoutMargins.bottom
-      cell.layoutMargins.left += layoutMargins.left
-    }
+    cell.layoutMargins.top += layoutMargins.top
+    cell.layoutMargins.right += layoutMargins.right
+    cell.layoutMargins.bottom += layoutMargins.bottom
+    cell.layoutMargins.left += layoutMargins.left
   }
   
   
@@ -182,8 +180,23 @@ import UIKit
     layoutMargins = margins
   }
   
-  @objc public func removeLayoutMargins() {
-    layoutMargins = nil
+}
+
+
+
+extension TableRow {
+  
+  static var stickyHeaderScrollHandler: ScrollViewBlock {
+    return { scrollView, row in
+      row.cell?.y = min(scrollView.contentOffset.y, 0)
+    }
+  }
+  
+  static var stickyHeaderScrollHandlerWithDecay: ScrollViewBlock {
+    return { scrollView, row in
+      let mod = decay(offset: scrollView.contentOffset.y, dimension: scrollView.height) / 4
+      row.cell?.y = min(scrollView.contentOffset.y - mod, 0)
+    }
   }
   
 }
